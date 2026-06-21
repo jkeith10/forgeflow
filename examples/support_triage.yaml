@@ -1,0 +1,40 @@
+name: support_triage
+description: Classify an inbound customer message, gate urgent cases on human approval, and draft a reply.
+
+# Used when you run `forgeflow run examples/support_triage.yaml --mock` with no --input.
+example_inputs:
+  message: "I have called three times and no one has fixed my AC. This is unacceptable."
+
+inputs:
+  message:
+    type: string
+    required: true
+    description: The raw inbound customer message.
+
+steps:
+  - id: classify
+    type: llm
+    output: [category, urgency, summary]
+    prompt: |
+      Read the message below and classify it.
+      Return the category, an urgency level, and a one-line summary.
+
+      Message:
+      {{ inputs.message }}
+
+  - id: approval
+    type: human_approval
+    when: "{{ steps.classify.output.urgency == 'high' }}"
+    message: "High-urgency '{{ steps.classify.output.category }}' detected. Approve before sending a reply."
+
+  - id: draft_response
+    type: llm
+    prompt: |
+      Write a concise, professional reply to the customer based on this analysis:
+      {{ steps.classify.output }}
+
+outputs:
+  category: "{{ steps.classify.output.category }}"
+  urgency: "{{ steps.classify.output.urgency }}"
+  summary: "{{ steps.classify.output.summary }}"
+  reply: "{{ steps.draft_response.output }}"

@@ -1,0 +1,38 @@
+name: home_service_dispatch
+description: Triage an inbound home-service request into trade, urgency, CSR booking notes, and a technician summary.
+
+example_inputs:
+  request: "My furnace is making a loud banging noise and there's no heat upstairs. Started last night."
+
+inputs:
+  request:
+    type: string
+    required: true
+    description: The customer's service request, as captured by the CSR.
+
+steps:
+  - id: triage
+    type: llm
+    output: [trade, urgency, summary]
+    prompt: |
+      Read the home-service request below and triage it.
+      Return the trade, an urgency level, and a one-line summary.
+
+      Request:
+      {{ inputs.request }}
+
+  - id: dispatch_check
+    type: human_approval
+    when: "{{ steps.triage.output.urgency == 'high' }}"
+    message: "Emergency {{ steps.triage.output.trade }} job. Approve same-day dispatch?"
+
+  - id: booking_notes
+    type: llm
+    prompt: |
+      Write short CSR booking notes and a one-line technician summary for this job:
+      {{ steps.triage.output }}
+
+outputs:
+  trade: "{{ steps.triage.output.trade }}"
+  urgency: "{{ steps.triage.output.urgency }}"
+  booking_notes: "{{ steps.booking_notes.output }}"

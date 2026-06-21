@@ -1,0 +1,17 @@
+name: sales_lead_qualifier_eval
+workflow: ../sales_lead_qualifier.yaml
+
+cases:
+  - name: hot_enterprise_lead
+    inputs:
+      lead: "We're a 200-person enterprise with budget approved this quarter. I'm the VP of Ops and need this ASAP."
+    expect:
+      steps.qualify.output.score:
+        gte: 70
+      steps.qualify.output.next_action: book_demo
+
+  - name: tire_kicker
+    inputs:
+      lead: "Just curious, I'm a student with no budget exploring options."
+    expect:
+      steps.qualify.output.next_action: disqualify

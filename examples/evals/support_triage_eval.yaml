@@ -1,0 +1,25 @@
+name: support_triage_eval
+workflow: ../support_triage.yaml
+
+cases:
+  - name: angry_repeat_caller
+    inputs:
+      message: "I have called three times and no one has fixed my AC."
+    expect:
+      steps.classify.output.category: complaint
+      steps.classify.output.urgency: high
+
+  - name: simple_question
+    inputs:
+      message: "What are your support hours on Saturday?"
+    expect:
+      steps.classify.output.category: question
+      steps.classify.output.urgency: low
+
+  - name: billing_issue
+    inputs:
+      message: "I was charged twice for my last invoice and want a refund."
+    expect:
+      steps.classify.output.category: billing
+      outputs.reply:
+        not_empty: true

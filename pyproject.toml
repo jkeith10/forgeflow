@@ -1,0 +1,71 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "forgeflow"
+version = "0.1.0"
+description = "The missing workflow layer for practical AI automation — turn prompt chains into tested, observable, human-gated workflows."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "ForgeFlow Contributors" }]
+keywords = [
+    "ai", "llm", "agents", "workflow", "automation", "evals",
+    "prompt-engineering", "openai", "anthropic", "local-first", "ai-ops",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+]
+dependencies = [
+    "typer>=0.12",
+    "rich>=13.7",
+    "pydantic>=2.6",
+    "PyYAML>=6.0",
+    "Jinja2>=3.1",
+]
+
+[project.optional-dependencies]
+openai = ["openai>=1.30"]
+anthropic = ["anthropic>=0.30"]
+dev = ["pytest>=8.0", "ruff>=0.5", "build>=1.2"]
+all = ["openai>=1.30", "anthropic>=0.30"]
+
+[project.urls]
+Homepage = "https://github.com/your-org/forgeflow"
+Documentation = "https://github.com/your-org/forgeflow/tree/main/docs"
+Repository = "https://github.com/your-org/forgeflow"
+Issues = "https://github.com/your-org/forgeflow/issues"
+
+[project.scripts]
+forgeflow = "forgeflow.cli:app"
+ff = "forgeflow.cli:app"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+forgeflow = ["templates/*.yaml"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["B008", "E501"]
+
+[tool.ruff.lint.per-file-ignores]
+# cli.py reconfigures stdio to UTF-8 before importing Rich, so imports follow code.
+"src/forgeflow/cli.py" = ["E402"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

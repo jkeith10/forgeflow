@@ -1,0 +1,37 @@
+name: meeting_notes_to_action_plan
+description: Turn rough meeting notes into decisions, owners, and a clean action plan.
+
+example_inputs:
+  notes: |
+    - Priya will ship the onboarding fix by Friday
+    - Marcus to review the pricing page next week
+    - We decided to delay the mobile launch until Q3
+    - Send the updated deck to the client by Thursday
+
+inputs:
+  notes:
+    type: string
+    required: true
+    description: Raw, messy meeting notes.
+
+steps:
+  - id: extract
+    type: llm
+    output: [action_items, summary]
+    prompt: |
+      Read the meeting notes below.
+      Return a list of action items (each with a task, an owner, and a due date) and a one-line summary.
+
+      Notes:
+      {{ inputs.notes }}
+
+  - id: plan
+    type: llm
+    prompt: |
+      Format the following action items into a short, shareable action plan:
+      {{ steps.extract.output.action_items }}
+
+outputs:
+  summary: "{{ steps.extract.output.summary }}"
+  action_items: "{{ steps.extract.output.action_items }}"
+  action_plan: "{{ steps.plan.output }}"

@@ -1,0 +1,38 @@
+name: sales_lead_qualifier
+description: Score an inbound lead, recommend the next action, and draft a tailored follow-up.
+
+example_inputs:
+  lead: "We're a 200-person enterprise with budget approved this quarter. I'm the VP of Ops and need this ASAP."
+
+inputs:
+  lead:
+    type: string
+    required: true
+    description: A free-text description of the lead or the inbound message.
+
+steps:
+  - id: qualify
+    type: llm
+    output: [score, next_action, summary]
+    prompt: |
+      Read the lead description below and qualify it.
+      Return a numeric score from 0-100, a recommended next action, and a one-line summary.
+
+      Lead:
+      {{ inputs.lead }}
+
+  - id: review
+    type: human_approval
+    when: "{{ steps.qualify.output.next_action == 'book_demo' }}"
+    message: "Hot lead (score {{ steps.qualify.output.score }}). Approve before booking a demo."
+
+  - id: follow_up
+    type: llm
+    prompt: |
+      Draft a short, friendly follow-up message for this lead:
+      {{ steps.qualify.output }}
+
+outputs:
+  score: "{{ steps.qualify.output.score }}"
+  next_action: "{{ steps.qualify.output.next_action }}"
+  follow_up: "{{ steps.follow_up.output }}"
