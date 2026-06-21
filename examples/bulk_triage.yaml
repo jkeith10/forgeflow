@@ -1,0 +1,31 @@
+name: bulk_triage
+description: Classify a batch of inbound messages in parallel with a `map` step.
+
+example_inputs:
+  messages:
+    - "I have called three times and no one has fixed my AC. This is unacceptable."
+    - "What are your support hours on Saturday?"
+    - "I was charged twice for my last invoice and want a refund."
+
+inputs:
+  messages:
+    type: list
+    required: true
+    description: A list of raw inbound customer messages.
+
+steps:
+  # Runs the inner step once per message, concurrently, preserving order.
+  - id: classify_all
+    type: map
+    over: "{{ inputs.messages }}"
+    as: message
+    step:
+      type: llm
+      output: [category, urgency]
+      prompt: |
+        Read the message below and classify it.
+        Message:
+        {{ message }}
+
+outputs:
+  results: "{{ steps.classify_all.output }}"

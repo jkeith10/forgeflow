@@ -28,6 +28,7 @@ flowchart TD
    - Dispatch by `type`:
      - `human_approval` → call the `approver` callback; halt if rejected.
      - `llm` / `tool` / `transform` → execute, with retry on JSON parse failure for `llm`.
+     - `map` → fan out an inner step over a list concurrently (`ThreadPoolExecutor`), order preserved.
    - Record the `StepResult` and expose `steps.<id>.output` to later steps.
 4. Render `outputs` from the final context.
 5. Persist the whole `RunResult` to SQLite (unless `store=False`).

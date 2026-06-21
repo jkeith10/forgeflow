@@ -104,6 +104,26 @@ Pure templating — no LLM call. Useful for reshaping data between steps.
     word_count: "{{ steps.count.output }}"
 ```
 
+### `type: map`
+
+Fan out a single inner step over a list, **concurrently**, preserving input order.
+The step's output is a list of the inner step's outputs.
+
+```yaml
+- id: classify_all
+  type: map
+  over: "{{ inputs.messages }}"   # must resolve to a list
+  as: message                     # name the item is exposed as (default: item)
+  step:                           # one inner llm | tool | transform step
+    type: llm
+    output: [category, urgency]
+    prompt: "Classify: {{ message }}"
+```
+
+Inside the inner step you also get `{{ index }}` (0-based position) and `{{ item }}`
+(an alias for whatever `as` names). Access results downstream by index:
+`{{ steps.classify_all.output.0.category }}`. An empty `over` list yields `[]`.
+
 ## Outputs
 
 ```yaml

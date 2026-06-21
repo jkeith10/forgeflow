@@ -151,12 +151,14 @@ flowchart TD
 ## Features
 
 - 📝 **Workflows as YAML** — readable, diff-able, version-controllable.
-- 🧩 **Four step types** — `llm`, `tool`, `transform`, `human_approval`.
+- 🧩 **Five step types** — `llm`, `tool`, `transform`, `human_approval`, and `map`.
+- ⚡ **Parallel fan-out** — `map` runs a step over a list concurrently, order preserved.
 - 🧱 **Structured outputs** — declare `output: [fields]` and get parsed JSON with auto-retry.
 - 🔀 **Conditional steps** — `when:` expressions skip steps that don't apply.
 - 🙋 **Human-in-the-loop** — approval gates that halt the run until a human says go.
 - 🧪 **Evals** — test cases with rich assertions (`equals`, `contains`, `gte`, `not_empty`, …).
 - 🗂️ **Audit log** — `forgeflow runs` and `forgeflow inspect <id>` for full traceability.
+- 🤖 **Scriptable** — `--json` on `run`/`eval`/`runs`/`inspect` for clean piping into CI and tools.
 - 🧠 **Memory** — store policies and facts once, reuse them across workflows.
 - 🔌 **Provider-agnostic** — mock / OpenAI / Anthropic, with a clean base class for more.
 - 🖥️ **Offline demo mode** — the mock provider needs zero keys and is fully deterministic.
@@ -169,10 +171,10 @@ flowchart TD
 | Command | Description |
 | --- | --- |
 | `forgeflow init [path]` | Scaffold a new project with a starter workflow + eval. |
-| `forgeflow run <workflow.yaml> [--mock] [-i k=v] [-y]` | Run a workflow. |
-| `forgeflow eval <eval.yaml> [--mock/--live]` | Run an eval suite and report pass/fail. |
-| `forgeflow runs [-n N]` | List recent runs. |
-| `forgeflow inspect <run_id>` | Show the full trace of a run. |
+| `forgeflow run <workflow.yaml> [--mock] [-i k=v] [-y] [--json]` | Run a workflow. |
+| `forgeflow eval <eval.yaml> [--mock/--live] [--json]` | Run an eval suite and report pass/fail. |
+| `forgeflow runs [-n N] [--json]` | List recent runs. |
+| `forgeflow inspect <run_id> [--json]` | Show the full trace of a run. |
 | `forgeflow templates` | List built-in templates and registered tools. |
 | `forgeflow memory set/get/list/delete` | Manage local key/value memory. |
 
@@ -186,6 +188,7 @@ flowchart TD
 | [`sales_lead_qualifier`](examples/sales_lead_qualifier.yaml) | Score a lead, recommend the next action, draft a follow-up. |
 | [`meeting_notes_to_action_plan`](examples/meeting_notes_to_action_plan.yaml) | Turn rough notes into decisions, owners, and an action plan. |
 | [`home_service_dispatch`](examples/home_service_dispatch.yaml) | Triage an HVAC/plumbing/electrical request into booking + tech notes. |
+| [`bulk_triage`](examples/bulk_triage.yaml) | Classify a batch of messages **in parallel** with a `map` step. |
 
 ---
 
@@ -237,6 +240,8 @@ ForgeFlow is built for **controlled** automation, not blind autonomy:
 
 ## Roadmap
 
+- [x] Parallel `map` / fan-out step
+- [x] `--json` output for scripting
 - [ ] Web dashboard for runs, evals, and approvals
 - [ ] Visual workflow builder
 - [ ] Vector memory + retrieval step

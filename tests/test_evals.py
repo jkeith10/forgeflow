@@ -15,6 +15,13 @@ def test_sales_lead_eval_all_pass(examples_dir):
     ]
 
 
+def test_bulk_triage_map_eval_all_pass(examples_dir):
+    suite = run_eval_file(examples_dir / "evals" / "bulk_triage_eval.yaml", mock=True)
+    assert suite.all_passed, [
+        (c.name, [(a.path, a.actual) for a in c.assertions if not a.passed]) for c in suite.cases
+    ]
+
+
 def test_eval_reports_counts(examples_dir):
     suite = run_eval_file(examples_dir / "evals" / "support_triage_eval.yaml", mock=True)
     assert suite.total == 3

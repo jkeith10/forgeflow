@@ -10,6 +10,7 @@ TEMPLATE_CATALOG: list[tuple[str, str]] = [
     ("sales_lead_qualifier", "Score a lead, recommend the next action, draft a tailored follow-up."),
     ("meeting_notes_to_action_plan", "Turn rough meeting notes into decisions, owners, and an action plan."),
     ("home_service_dispatch", "Triage an HVAC/plumbing/electrical request into CSR booking + tech notes."),
+    ("bulk_triage", "Classify a batch of messages in parallel using a `map` step."),
 ]
 
 _STARTER_WORKFLOW = """\

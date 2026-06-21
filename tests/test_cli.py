@@ -1,3 +1,5 @@
+import json
+
 from typer.testing import CliRunner
 
 from forgeflow.cli import app
@@ -17,6 +19,25 @@ def test_run_mock(examples_dir):
     result = runner.invoke(app, ["run", path, "--mock", "--yes"])
     assert result.exit_code == 0
     assert "Run ID" in result.stdout
+
+
+def test_run_json_output(examples_dir):
+    path = str(examples_dir / "support_triage.yaml")
+    result = runner.invoke(app, ["run", path, "--mock", "--json"])
+    assert result.exit_code == 0
+    data = json.loads(result.stdout)
+    assert data["status"] == "completed"
+    assert data["outputs"]["category"] == "complaint"
+    assert data["run_id"].startswith("run_")
+
+
+def test_eval_json_output(examples_dir):
+    path = str(examples_dir / "evals" / "support_triage_eval.yaml")
+    result = runner.invoke(app, ["eval", path, "--json"])
+    assert result.exit_code == 0
+    data = json.loads(result.stdout)
+    assert data["all_passed"] is True
+    assert data["total"] == 3
 
 
 def test_eval_command(examples_dir):

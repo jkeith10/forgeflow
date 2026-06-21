@@ -8,7 +8,7 @@ from typing import Any, Literal
 import yaml
 from pydantic import BaseModel, Field, field_validator
 
-StepType = Literal["llm", "human_approval", "tool", "transform"]
+StepType = Literal["llm", "human_approval", "tool", "transform", "map"]
 
 
 class InputSpec(BaseModel):
@@ -19,7 +19,9 @@ class InputSpec(BaseModel):
 
 
 class Step(BaseModel):
-    id: str
+    # `id` is required for top-level steps (enforced on Workflow) but optional
+    # for the inner step of a `map`.
+    id: str | None = None
     type: StepType
 
     # Conditional execution. Truthy -> run, falsy -> skip. Supports `{{ }}`.
@@ -43,6 +45,14 @@ class Step(BaseModel):
 
     # transform steps (pure templating, no LLM call)
     value: Any = None
+
+    # map steps: run `step` once per item of the list `over` resolves to,
+    # concurrently. The item is exposed inside the inner step as `item_as`.
+    over: str | None = None
+    item_as: str = Field(default="item", alias="as")
+    step: Step | None = None
+
+    model_config = {"populate_by_name": True}
 
     @field_validator("retries")
     @classmethod
@@ -68,6 +78,8 @@ class Workflow(BaseModel):
     def _unique_step_ids(cls, steps: list[Step]) -> list[Step]:
         seen: set[str] = set()
         for s in steps:
+            if s.id is None:
+                raise ValueError("every top-level step needs an 'id'")
             if s.id in seen:
                 raise ValueError(f"duplicate step id: {s.id}")
             seen.add(s.id)

@@ -1,0 +1,15 @@
+name: bulk_triage_eval
+workflow: ../bulk_triage.yaml
+
+cases:
+  - name: mixed_batch
+    inputs:
+      messages:
+        - "I have called three times and no one has fixed my AC. This is unacceptable."
+        - "What are your support hours on Saturday?"
+        - "I was charged twice for my last invoice and want a refund."
+    expect:
+      steps.classify_all.output.0.category: complaint
+      steps.classify_all.output.0.urgency: high
+      steps.classify_all.output.1.category: question
+      steps.classify_all.output.2.category: billing

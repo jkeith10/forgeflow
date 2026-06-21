@@ -17,6 +17,7 @@ from typing import Any
 from forgeflow.engine.conditions import evaluate_condition
 from forgeflow.engine.steps import (
     execute_llm,
+    execute_map,
     execute_tool,
     execute_transform,
 )
@@ -178,6 +179,8 @@ def _execute(
         return execute_tool(step, ctx, registry)
     if step.type == "transform":
         return execute_transform(step, ctx)
+    if step.type == "map":
+        return execute_map(step, ctx, provider_name=provider_name, registry=registry)
     raise ValueError(f"Unsupported step type: {step.type}")
 
 

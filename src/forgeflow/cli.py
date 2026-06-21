@@ -87,6 +87,24 @@ def _approver(message: str) -> bool:
     return typer.confirm("Approve and continue?", default=True)
 
 
+def _print_json(obj: object) -> None:
+    """Plain JSON to stdout for scripting (no Rich markup)."""
+    print(json.dumps(obj, indent=2, default=str))
+
+
+def _run_to_dict(result: RunResult) -> dict:
+    return {
+        "run_id": result.run_id,
+        "workflow": result.workflow,
+        "status": result.status,
+        "provider": result.provider,
+        "created_at": result.created_at,
+        "inputs": result.inputs,
+        "outputs": result.outputs,
+        "steps": [s.to_dict() for s in result.steps],
+    }
+
+
 @app.command()
 def version() -> None:
     """Print the ForgeFlow version."""
@@ -119,12 +137,14 @@ def run(
     mock: bool = typer.Option(False, "--mock", help="Use the deterministic mock provider (no API keys)."),
     provider: str | None = typer.Option(None, "--provider", help="Override provider: mock|openai|anthropic."),
     yes: bool = typer.Option(False, "--yes", "-y", help="Auto-approve all human-approval gates."),
+    output_json: bool = typer.Option(False, "--json", help="Emit the run as JSON (implies auto-approve)."),
 ) -> None:
     """Run a workflow."""
     workflow = load_workflow(workflow_path)
-    console.print(Panel.fit(f"Running workflow: [bold]{workflow.name}[/]", border_style="cyan"))
+    if not output_json:
+        console.print(Panel.fit(f"Running workflow: [bold]{workflow.name}[/]", border_style="cyan"))
 
-    approver = (lambda _: True) if yes else _approver
+    approver = (lambda _: True) if (yes or output_json) else _approver
     result = run_workflow(
         workflow,
         _parse_inputs(input),
@@ -132,7 +152,10 @@ def run(
         mock=mock,
         approver=approver,
     )
-    _render_run(result)
+    if output_json:
+        _print_json(_run_to_dict(result))
+    else:
+        _render_run(result)
     if result.status == "error":
         raise typer.Exit(code=1)
 
@@ -141,9 +164,35 @@ def run(
 def eval(  # noqa: A001 - intentional command name
     eval_path: str = typer.Argument(..., help="Path to an eval suite YAML file."),
     mock: bool = typer.Option(True, "--mock/--live", help="Run evals against the mock provider (default)."),
+    output_json: bool = typer.Option(False, "--json", help="Emit eval results as JSON."),
 ) -> None:
     """Run an eval suite and report pass/fail."""
     suite = run_eval_file(eval_path, mock=mock)
+
+    if output_json:
+        _print_json(
+            {
+                "name": suite.name,
+                "passed": suite.passed,
+                "total": suite.total,
+                "all_passed": suite.all_passed,
+                "cases": [
+                    {
+                        "name": c.name,
+                        "passed": c.passed,
+                        "error": c.error,
+                        "assertions": [
+                            {"path": a.path, "passed": a.passed, "expected": a.expected, "actual": a.actual}
+                            for a in c.assertions
+                        ],
+                    }
+                    for c in suite.cases
+                ],
+            }
+        )
+        if not suite.all_passed:
+            raise typer.Exit(code=1)
+        return
 
     table = Table(title=f"Eval: {suite.name}", show_lines=False)
     table.add_column("Case", style="bold")
@@ -168,11 +217,17 @@ def eval(  # noqa: A001 - intentional command name
 
 
 @app.command()
-def runs(limit: int = typer.Option(20, "--limit", "-n", help="Number of runs to show.")) -> None:
+def runs(
+    limit: int = typer.Option(20, "--limit", "-n", help="Number of runs to show."),
+    output_json: bool = typer.Option(False, "--json", help="Emit the run list as JSON."),
+) -> None:
     """List recent workflow runs."""
     from forgeflow.logging.runs import list_runs
 
     rows = list_runs(limit)
+    if output_json:
+        _print_json(rows)
+        return
     if not rows:
         console.print("[dim]No runs yet. Try: forgeflow run examples/support_triage.yaml --mock[/]")
         return
@@ -189,14 +244,24 @@ def runs(limit: int = typer.Option(20, "--limit", "-n", help="Number of runs to 
 
 
 @app.command()
-def inspect(run_id: str = typer.Argument(..., help="Run ID to inspect.")) -> None:
+def inspect(
+    run_id: str = typer.Argument(..., help="Run ID to inspect."),
+    output_json: bool = typer.Option(False, "--json", help="Emit the run as JSON."),
+) -> None:
     """Show the full trace of a previous run."""
     from forgeflow.logging.runs import get_run
 
     data = get_run(run_id)
     if not data:
-        console.print(f"[red]No run found with id {run_id}[/]")
+        if output_json:
+            _print_json({"error": "not_found", "run_id": run_id})
+        else:
+            console.print(f"[red]No run found with id {run_id}[/]")
         raise typer.Exit(code=1)
+
+    if output_json:
+        _print_json(data)
+        return
 
     console.print(Panel.fit(
         f"[bold]{data['workflow']}[/]\nStatus: {data['status']}  Provider: {data['provider']}\n{data['created_at']}",

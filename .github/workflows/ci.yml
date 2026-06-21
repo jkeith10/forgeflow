@@ -39,3 +39,4 @@ jobs:
         run: |
           forgeflow eval examples/evals/support_triage_eval.yaml
           forgeflow eval examples/evals/sales_lead_qualifier_eval.yaml
+          forgeflow eval examples/evals/bulk_triage_eval.yaml
