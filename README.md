@@ -26,27 +26,12 @@ It runs **fully offline in mock mode** (no API keys), so you can clone it and se
 forgeflow run examples/support_triage.yaml --mock
 ```
 
-```text
-┌──────────────────────────────────┐
-│ Running workflow: support_triage │
-└──────────────────────────────────┘
-✓ step classify (llm)
-✓ step approval (human_approval)
-✓ step draft_response (llm)
+<div align="center">
+  <img src="docs/demo.svg" alt="ForgeFlow running the support_triage workflow in mock mode" width="720">
+</div>
 
-┌────────────── Result ──────────────┐
-│ Run ID: run_20260621_094832_779316 │
-│ Status: completed                  │
-│ Provider: mock                     │
-└────────────────────────────────────┘
-Outputs
-{
-  "category": "complaint",
-  "urgency": "high",
-  "summary": "I have called three times and no one has fixed my AC...",
-  "reply": "Thanks for reaching out - I understand this is time-sensitive..."
-}
-```
+> _Real terminal output, generated offline by the mock provider — zero API keys.
+> Regenerate with `python scripts/gen_demo_svg.py`._
 
 ---
 
