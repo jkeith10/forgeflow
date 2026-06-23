@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "forgeflow"
-version = "0.2.0"
+version = "0.3.0"
 description = "The missing workflow layer for practical AI automation — turn prompt chains into tested, observable, human-gated workflows."
 readme = "README.md"
 requires-python = ">=3.10"

@@ -112,6 +112,30 @@ def version() -> None:
 
 
 @app.command()
+def serve(
+    port: int = typer.Option(8787, "--port", "-p", help="Port to listen on."),
+    host: str = typer.Option("127.0.0.1", "--host", help="Host to bind."),
+    no_browser: bool = typer.Option(False, "--no-browser", help="Don't auto-open a browser."),
+) -> None:
+    """Launch the local dashboard for runs, memory, and templates."""
+    from forgeflow.web import serve as serve_dashboard
+
+    url = f"http://{host}:{port}"
+    console.print(
+        Panel.fit(
+            f"ForgeFlow dashboard running at [bold]{url}[/]\n[dim]Press Ctrl+C to stop.[/]",
+            border_style="cyan",
+        )
+    )
+    try:
+        serve_dashboard(host=host, port=port, open_browser=not no_browser)
+    except OSError as err:
+        console.print(f"[red]Could not start server on {url}:[/] {err}")
+        raise typer.Exit(code=1) from err
+    console.print("[dim]Dashboard stopped.[/]")
+
+
+@app.command()
 def init(
     path: str = typer.Argument(".", help="Directory to scaffold the project into."),
 ) -> None:

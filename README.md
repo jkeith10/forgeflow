@@ -112,6 +112,19 @@ That's the whole mental model: **steps that pass data forward via `{{ templates 
 
 ---
 
+## Dashboard
+
+Prefer a UI to the terminal? `forgeflow serve` launches a local, zero-dependency
+web dashboard (stdlib only — nothing to install) for browsing runs and memory:
+
+```bash
+forgeflow serve        # http://127.0.0.1:8787
+```
+
+It auto-refreshes, lets you click any run to see its full step-by-step trace, and
+reads from the same local store the CLI writes to. It's read-only and stays on your
+machine. Full details + JSON API in [docs/dashboard.md](docs/dashboard.md).
+
 ## Architecture
 
 ```mermaid
@@ -145,6 +158,7 @@ flowchart TD
 | **Memory** | Local SQLite key/value store for reusable facts and policies, readable from workflows. |
 | **Run log** | Every run is persisted with inputs, per-step outputs, and status — inspectable forever. |
 | **Evals** | Define test cases for a workflow and assert on any step output. Runs in CI in mock mode. |
+| **Dashboard** | `forgeflow serve` — a stdlib-only local web UI over the run log and memory. |
 
 ---
 
@@ -158,6 +172,7 @@ flowchart TD
 - 🙋 **Human-in-the-loop** — approval gates that halt the run until a human says go.
 - 🧪 **Evals** — test cases with rich assertions (`equals`, `contains`, `gte`, `not_empty`, …).
 - 🗂️ **Audit log** — `forgeflow runs` and `forgeflow inspect <id>` for full traceability.
+- 📊 **Local dashboard** — `forgeflow serve` opens a zero-dependency web UI for runs and memory.
 - 🤖 **Scriptable** — `--json` on `run`/`eval`/`runs`/`inspect` for clean piping into CI and tools.
 - 🧠 **Memory** — store policies and facts once, reuse them across workflows.
 - 🔌 **Provider-agnostic** — mock / OpenAI / Anthropic, with a clean base class for more.
@@ -175,6 +190,7 @@ flowchart TD
 | `forgeflow eval <eval.yaml> [--mock/--live] [--json]` | Run an eval suite and report pass/fail. |
 | `forgeflow runs [-n N] [--json]` | List recent runs. |
 | `forgeflow inspect <run_id> [--json]` | Show the full trace of a run. |
+| `forgeflow serve [-p PORT] [--no-browser]` | Launch the local dashboard. |
 | `forgeflow templates` | List built-in templates and registered tools. |
 | `forgeflow memory set/get/list/delete` | Manage local key/value memory. |
 
@@ -242,7 +258,8 @@ ForgeFlow is built for **controlled** automation, not blind autonomy:
 
 - [x] Parallel `map` / fan-out step
 - [x] `--json` output for scripting
-- [ ] Web dashboard for runs, evals, and approvals
+- [x] Local web dashboard for runs & memory (`forgeflow serve`)
+- [ ] Web-based approvals (approve/reject gates from the dashboard)
 - [ ] Visual workflow builder
 - [ ] Vector memory + retrieval step
 - [ ] More providers (local models via Ollama, Google, Mistral)
